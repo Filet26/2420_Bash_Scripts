@@ -1,0 +1,60 @@
+#!/bin/bash
+
+#: Title : read_reminders
+#: Date : Feb 22 2022
+#: Author : Desmond Ho
+#: Version :  1.0
+#: Description : Reads contents from file, displays using pager
+#: Options : -f to [ Keyword ], -h [ Usage ]
+
+#usage option
+usage() {
+	echo "$0 -f [ Search keyword ] -h [ Usage ]"
+	exit 0
+}
+
+
+#keyword status
+use_keyword="false"
+
+#keyword to use
+keyword=""
+
+while getopts ':f:h' options
+do 
+	case $options in 
+		f) use_keyword="true"
+			keyword=${OPTARG}
+			;;
+		h) usage
+			;;
+		:) echo "Error: -${OPTARG} requires and argument"
+			exit 1
+			;;
+
+	esac
+done
+
+
+#if keyword is given, return all results with keyword
+#else, open with less
+
+if [[ $use_keyword == "true" ]]; then
+	echo $(grep $keyword /home/$(whoami)/.reminders)
+	exit 0
+elif [[ $use_keyword == "false" ]]; then
+	if [[ ! -z $PAGER ]]; then
+		$PAGER /home/$(whoami)/.reminders
+	else
+		less /home/$(whoami)/.reminders
+	fi
+	exit 0
+else
+	echo "Error, something went wrong!"
+	exit 1
+fi
+
+
+
+
+

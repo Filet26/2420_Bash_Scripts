@@ -1,0 +1,107 @@
+#!/usr/bin/sudo bash
+
+#: Title       : create_user
+#: Date        : feb 22 2022
+#: Author      : Desmond Ho
+#: Version     : 1.0
+#: Description : Creates a regular user with home directory and password
+#: Options     : -n [NAME] -c [COMMENTS] -h [ Help Message ]
+
+#function that shows the usage if the -h command is called
+usage() {
+	echo "$0 -n [ USERNAME ]  -c [ COMMENTS ] -h <Displays Options>"
+}
+
+error() {
+	usage
+	exit 1
+}
+
+Name="NewUser"
+Comments=""
+Uid=""
+
+
+#options
+while getopts ':n:c:h' options
+do
+	case $options in 
+		n) Name=${OPTARG}
+			;;
+		c) Comments=${OPTARG}
+			;;
+		h) usage
+			;;
+		:) echo "Error: -${OPTARG} requires and argument"
+			exit 1
+			;;
+		"?") error
+	esac
+done
+
+
+# This generates an ID that is not in use
+# chooses a random number, if the number is not in use, the variable "uid"
+# is assigned with the random number
+
+#arrays with all UIDs and GIDs from /etc/passwd
+PASSWD_ID=($(awk -F: '{print $3}' /etc/passwd))
+GROUP_ID=($(awk -F: '{print $4}' /etc/passwd))
+
+
+
+while true; do
+	#generates number from 1-6000
+	value=$(( $RANDOM % 6000 + 1 ))
+	#sets delimeter
+	IFS=$'\n'
+	#if value is in the arrays, find a new value
+	if [[ "${IFS}${PASSWD_ID[*]}${IFS}" =~ "${IFS}${value}${IFS}" ]] || \
+	       	[[ "${IFS}${GROUP_ID[*]}${IFS}" =~ "${IFS}${value}${IFS}" ]]; then
+		continue		
+	else
+		#value is unique, so it is assigned at the UID and GID
+		Uid="$value"
+		break
+
+	fi
+
+done
+
+#appends user info into /etc/passwd
+
+echo "$Name:x:$Uid:$Uid:$Comments:/home/$Name:/bin/bash" >> /etc/passwd
+
+#appends user info into /etc/group
+
+
+echo "$Name:x:$Uid:" >> /etc/group
+
+
+#sets passwd for user
+passwd $Name
+
+#make home directory for the user
+
+mkdir /home/$Name
+
+#copy /etc.skel/.bash* . into new users home directory
+cp -vr /etc/skel/. /home/$Name
+
+#modifies permissions
+
+find /home/NewUser  -exec chown NewUser: {} \;
+
+
+#Displays user name, UID, GID, Home directory
+
+echo "Thanks for using this tool."
+echo "==========================="
+echo "New User Information"
+printf "Name: $Name\nUID: $Uid\nGID: $Uid\n Home Directory: /home/$Name"
+
+exit 0
+ 
+
+ 
+

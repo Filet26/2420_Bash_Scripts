@@ -1,0 +1,71 @@
+#!/bin/bash
+
+#: Title   : create_reminders
+#: Date    : Feb 22 2022
+#: Author  : Desmond Ho
+#: Version : 1.0 
+#: Description : reads inputs from standard input, writes to a single file
+#: Options : -h [ Help Message]
+
+
+#usage function
+usage() {
+	echo "$0  -h [ Help ]"
+	exit 0
+}
+
+
+#reads input until <CTRL + D> is entered, then the program will exit
+
+create_reminders() {
+	echo "To stop taking in reminders, press <CTRL + D> !!"
+
+
+	IFS=''
+        while read Line; do
+                if [ $Line == "^D" ];then
+                        break
+                else
+			echo $Line >> /home/$(whoami)/$File 
+                fi
+        done
+        echo "========================================="
+	echo "Your reminders are stored in /home/$(whoami)/$FILE"
+        exit 0
+
+}
+
+#default file name
+File=.reminders
+
+
+
+#options
+
+while getopts 'h' options
+do
+	case $options in
+		
+		h) usage
+			;;
+		"?") echo "error" 
+			exit 1
+	esac
+done
+
+shift $((OPTIND -1))
+
+#if positional arguments are provideds
+if [[ $# -lt 1 ]]; then
+	#calls function to take input when no pos args are given
+	create_reminders
+else
+	echo $@ >> /home/$(whoami)/$File
+	exit 0
+	
+fi
+
+exit 0
+
+
+

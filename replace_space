@@ -1,0 +1,86 @@
+#!/bin/bash
+
+#: title       : replace_space
+#: Date        : Feb 22 2022
+#: Author      : Desmond Ho
+#: Version     : 1.0
+#: Description : takes a file or directory as an input, 
+		 #replaces space with dash or hyphen
+#: Options     : -c <separator> -h <help>
+
+#usage function that displays usage
+usage() {
+	echo "$0 -c [ Separator ] -h [ Help Message ]"
+	exit 0
+}
+
+#the default spacing item is a dash
+space_item="-"
+
+
+
+
+
+#function to rename all items in directory
+rename_directory_items() {
+	#it is what it is
+	echo "you have entered a directory, please enter the full path to the directory"
+	echo "**eg. /home/user/files/DIRECTORY**"
+	read -p "Path:  " path
+      	
+	for i in "$path"/*; do
+        	mv "$i" "${i// /$space_item}" &> /dev/null	
+	done
+	echo "All files in directory have been renamed"
+}	
+
+
+
+#check the options passed, if the -c option is passed, the space is set to that
+while getopts ":c:h" options; do
+	case "${options}" in
+		c)
+			space_item="${OPTARG}"
+			;;
+		h)
+			usage
+			;;
+		:)
+			echo "error: -${OPTARG} requires an argument!"
+			usage 
+			exit 1
+			;;
+		?)
+			exit 1
+			
+
+	esac
+done
+shift $((OPTIND - 1))
+
+#check if value provided is either a underscore or dash
+
+if [[ "$space_item" != "-" ]]  && [[ "$space_item" != "_" ]]; then
+	echo "Separator can be - Dash, or _ Underscore!!"
+        exit 1
+
+fi
+
+
+
+
+
+#check if item is a file or directory
+if [[ -f $1 ]]; then
+	mv "$1" "${1// /$space_item}" 
+elif [[ -d $1 ]]; then
+	echo "DIRECTORY"
+	rename_directory_items $1
+else
+	echo "$1 is not a valid item"
+	exit 1
+fi
+
+
+
+
